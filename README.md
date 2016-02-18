@@ -14,31 +14,31 @@ to react to those invalidation somehow (so basically, trigger another action whe
 
 ## Example of usage
 ```javascript
-	//todo, not added yet to npm
-	import asyncR from 'resource-manager'
+//todo, not added yet to npm
+import asyncR from 'resource-manager'
 
-	function fetchMeSomeCandy () {
-		return myAjaxLibCall('/path/to/static/url')
-	}
+function fetchMeSomeCandy () {
+	return myAjaxLibCall('/path/to/static/url')
+}
 
-	var resource = asyncR(fetchMeSomeCandy)
+var resource = asyncR(fetchMeSomeCandy)
 
-	//... somewhere in the flow
-	// fetchMeSomeCandy is called
-	resource.get()
-		.then( (response) => {
-			//do stuff with the ajax response
-		})
+//... somewhere in the flow
+// fetchMeSomeCandy is called
+resource.get()
+	.then( (response) => {
+		//do stuff with the ajax response
+	})
 
-	//... somewhere else in the flow
-	// fetchMeSomeCandy is not called
-	resource.get()
-		.then( (response) => {
-			//do stuff with the ajax response
-		})
+//... somewhere else in the flow
+// fetchMeSomeCandy is not called
+resource.get()
+	.then( (response) => {
+		//do stuff with the ajax response
+	})
 
 
-	resource.clear()
-	// fetchMeSomeCandy is called again
-	resource.get()
+resource.clear()
+// fetchMeSomeCandy is called again
+resource.get()
 ```

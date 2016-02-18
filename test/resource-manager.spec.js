@@ -4,11 +4,10 @@ import asyncR from '../src'
 
 describe('Resource Manager', () => {
 
-
 	let asyncOp, asyncOpSpy, resourceValue = 'blank';
 
 	beforeEach( () => {
-		// simulate a 500ms long operation
+		// simulate a 250ms long operation
 		asyncOp = function () {
 			return new Promise( (resolve, reject) => {
 				setTimeout( () => {
@@ -124,6 +123,25 @@ describe('Resource Manager', () => {
 			
 		});
 	});
+
+	describe('Resource clear on done', function (done) {
+		it('Should automatically clear items when created with clearWhenDone options', (done) => {
+			let resource = asyncR(asyncOpSpy, {clearOnDone:true});
+
+			resource.get();
+			resource.get()
+				.then( () => {
+					return resource.get();
+				})
+				.then( () => {
+					expect(asyncOpSpy.callCount).to.equal(2);
+					done()
+				})
+				.catch(done);
+		});
+	});
+
+
 });
 
 

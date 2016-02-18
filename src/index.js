@@ -1,7 +1,11 @@
-export default function asyncR ( asyncOperation ) {
+export default function asyncR ( asyncOperation, options ) {
 	var cache = null,
 		callbacks = [];
 
+	options = options || {
+		clearOnDone : false
+	};
+		
 	return {
 
 		whenCleared : function (cb) {
@@ -19,6 +23,11 @@ export default function asyncR ( asyncOperation ) {
 		get : function () {
 			if (!cache) {
 				cache = asyncOperation()
+				if ( options.clearOnDone ) {
+					cache
+						.then( () => { cache = null } )
+						.catch( () => { cache = null } );
+				}
 			}
 			return cache;
 		}

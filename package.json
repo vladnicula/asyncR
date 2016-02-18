@@ -1,0 +1,25 @@
+{
+  "name": "resource-manager",
+  "version": "0.0.1",
+  "description": "A simple async resource manager which assures that resources are fetched only once and cached afterwards",
+  "main": "index.js",
+  "dependencies": {
+    "babel": "^6.5.2",
+    "babel-preset-es2015": "^6.5.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.5.2",
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5",
+    "sinon": "^1.17.3"
+  },
+  "scripts": {
+    "test": "mocha --compilers js:babel-core/register"
+  },
+  "keywords": [
+    "async",
+    "management"
+  ],
+  "author": "Vlad Nicula",
+  "license": "MIT"
+}

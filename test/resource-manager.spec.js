@@ -4,35 +4,42 @@ import asyncR from '../src'
 
 describe('Resource Manager', () => {
 
+
+	let asyncOp, asyncOpSpy, resourceValue = 'blank';
+
+	beforeEach( () => {
+		// simulate a 500ms long operation
+		asyncOp = function () {
+			return new Promise( (resolve, reject) => {
+				setTimeout( () => {
+					resolve(resourceValue)
+				}, 250);
+			});
+		}
+
+		asyncOpSpy = sinon.spy(asyncOp);
+	});
+
 	describe('Basic resource registration', () => {
 
-		it('Should wrap resoruce into function', () => {
-			let basicResource = asyncR(function () {
-				return new Promise( (resolve, reject) => {
-					resolve();
-				})
-			});
-			expect(basicResource).to.be.a('function');
+		it('Should wrap async operations into resource object', () => {
+			let basicResource = asyncR(asyncOpSpy);
+			expect(basicResource).to.be.a('object');
+			expect(basicResource.get).to.be.a('function');
+			expect(basicResource.clear).to.be.a('function');
+			expect(basicResource.whenCleared).to.be.a('function');
 		});
 
 		it('Should get resource as promise', () => {
-			let basicResource = asyncR(function () {
-				return new Promise( (resolve, reject) => {
-					resolve();
-				})
-			});
-			let resourcePromise = basicResource();
-			expect(resourcePromise).to.be.instanceOf(Promise);
+			let basicResource = asyncR(asyncOpSpy);
+			expect(basicResource.get()).to.be.instanceOf(Promise);
 		});
 
-		it ('Should get the result of the async opertaion in resource', () => {
-			let resourceValue = 'Value of async opertaion';
-			let asyncOperation = function () {
-				return Promise.resolve(resourceValue)
-			}
-			let resourceR = asyncR(asyncOperation);
-			resourceR().then((resrouceResult) => {
+		it ('Should get the result of the async opertaion in resource', (done) => {
+			let resourceR = asyncR(asyncOpSpy);
+			resourceR.get().then((resrouceResult) => {
 				expect(resrouceResult).to.equal(resourceValue);
+				done();
 			});
 		});
 
@@ -40,29 +47,14 @@ describe('Resource Manager', () => {
 
 	describe('Multiple calls to resource', function () {
 
-		let asyncOp, asyncOpSpy, resourceValue = 'blank';
-
-		beforeEach( () => {
-			// simulate a 500ms long operation
-			asyncOp = function () {
-				return new Promise( (resolve, reject) => {
-					setTimeout( () => {
-						resolve(resourceValue)
-					}, 500);
-				});
-			}
-
-			asyncOpSpy = sinon.spy(asyncOp);
-		});
-
 		it('Should call asyncOp only once', () => {
 
 			let resource = asyncR(asyncOpSpy);
 
 			let resourceAccessRequests = [
-				resource(),
-				resource(),
-				resource()
+				resource.get(),
+				resource.get(),
+				resource.get()
 			]
 
 			expect(asyncOpSpy.callCount).to.equal(1);
@@ -73,12 +65,10 @@ describe('Resource Manager', () => {
 			let resource = asyncR(asyncOpSpy);
 
 			let resourceAccessRequests = [
-				resource(),
-				resource(),
-				resource()
+				resource.get(),
+				resource.get(),
+				resource.get()
 			]
-
-			expect(resource()).to.be.instanceOf(Promise);
 
 			Promise.all(resourceAccessRequests)
 				.then( (results) => {
@@ -86,27 +76,62 @@ describe('Resource Manager', () => {
 					expect(r1).to.equal(resourceValue);
 					expect(r2).to.equal(resourceValue);
 					expect(r3).to.equal(resourceValue);
+					expect(asyncOpSpy.callCount).to.equal(1);
 					done();
 				})
-				.catch( (err) => done(err) )
+				.catch(done);
 		});
 	});
 
+	describe('Resource invalidation', function () {
 
+		it ('Should be able to register and call invalidation callback', (done) => {
+			let resource = asyncR(asyncOpSpy);
 
+			let invalidateCb = sinon.spy();
 
+			resource.whenCleared(invalidateCb);
 
+			resource.clear().then( () => {
+				expect(invalidateCb.callCount).to.equal(1);
+			});
 
+			done();
+		});
 
+		it('Should call invalidate only after resource has been loaded', (done) => {
+			let resource = asyncR(asyncOpSpy);
 
+			let invalidateCb = sinon.spy();
 
+			resource.whenCleared(invalidateCb);
 
+			let promise = resource.get();
 
+			resource.clear();
 
+			// clear needs to be called before we add a .then to the
+			// promise, otherwise this .then will run first before the
+			// .then registered in the clear
+			promise
+				.then( () => {
+					expect(invalidateCb.callCount).to.equal(1);	
+					done();
+				})
+				.catch(done);
 
-
-
-
-
-
+			expect(invalidateCb.callCount).to.equal(0);
+			
+		});
+	});
 });
+
+
+
+
+
+
+
+
+
+

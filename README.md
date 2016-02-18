@@ -13,7 +13,7 @@ Another main requirement was to have a way of invalidating a cache, and somehow 
 to react to those invalidation somehow (so basically, trigger another action when cache was invalidated).
 
 ## Example of usage
-	
+```javascript
 	//todo, not added yet to npm
 	import asyncR from 'resource-manager'
 
@@ -41,3 +41,4 @@ to react to those invalidation somehow (so basically, trigger another action whe
 	resource.clear()
 	// fetchMeSomeCandy is called again
 	resource.get()
+```
